@@ -2,140 +2,220 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Money Battery - Elder Edition</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Money Battery - Gemini Edition</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+
     <style>
         :root {
-            --bg-color: #121212;
-            --card-color: #1e1e1e;
-            --text-color: #ffffff;
-            --battery-green: #4caf50;
-            --battery-yellow: #ffeb3b;
-            --battery-red: #f44336;
+            /* Paleta de Cores inspirada no Gemini/Material 3 Dark */
+            --bg-color: #131314; /* Fundo escuro padrão Google */
+            --card-color: #1e1f20; /* Superfície dos cards */
+            --text-primary: #e3e3e3;
+            --text-secondary: #c4c7c5;
+            
+            /* Cores de Estado (suaves, não berrantes) */
+            --md-green: #a7f3d0; /* Verde menta suave */
+            --md-yellow: #fef08a; /* Amarelo palha suave */
+            --md-red: #fecaca; /* Vermelho pastel suave */
+            
+            /* UI Elements */
+            --input-bg: #2a2b2e;
+            --btn-primary: #a8c7fa; /* Azul claro Gemini */
+            --btn-text: #062e6f;
+            --border-radius-lg: 28px; /* Cantos bem arredondados M3 */
+            --border-radius-md: 16px;
         }
 
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Roboto', sans-serif;
             background-color: var(--bg-color);
-            color: var(--text-color);
+            color: var(--text-primary);
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             min-height: 100vh;
             margin: 0;
+            padding: 20px;
         }
 
         .container {
             background-color: var(--card-color);
             padding: 2rem;
-            border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            border-radius: var(--border-radius-lg);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.3);
             text-align: center;
-            width: 320px;
+            width: 100%;
+            max-width: 360px;
+            border: 1px solid #3c4043; /* Borda sutil */
         }
 
-        /* Desenho da Bateria */
+        h2 { font-weight: 500; margin-top: 0; font-size: 1.5rem; color: var(--text-primary); }
+        .label { color: var(--text-secondary); font-size: 0.9rem; font-weight: 400; margin-bottom: 1.5rem; display: block;}
+
+        /* --- Design da Bateria Totalmente Arredondado --- */
+        .battery-container {
+            position: relative;
+            width: 110px;
+            height: 220px;
+            margin: 0 auto 2rem auto;
+        }
+
+        /* O pino da bateria agora é integrado e arredondado */
         .battery-head {
-            width: 30px;
-            height: 12px;
-            background: #444;
-            margin: 0 auto;
-            border-radius: 4px 4px 0 0;
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 34px;
+            height: 16px;
+            background: #444746;
+            border-radius: 8px 8px 0 0;
+            z-index: 1;
         }
 
         .battery-body {
-            width: 120px;
-            height: 200px;
-            border: 4px solid #444;
-            margin: 0 auto;
-            border-radius: 12px;
-            padding: 4px;
+            width: 100%;
+            height: 100%;
+            border: 3px solid #444746;
+            border-radius: 30px; /* Cantos da pílula */
+            padding: 6px;
             display: flex;
-            align-items: flex-end;
+            align-items: flex-end; /* Enche de baixo pra cima */
             position: relative;
+            background-color: #131314;
+            overflow: hidden; /* Garante que o nível não saia da borda */
+            box-shadow: inset 0 2px 8px rgba(0,0,0,0.5);
         }
 
         .battery-level {
             width: 100%;
-            height: 100%; /* Vai ser controlado pelo JS */
-            border-radius: 6px;
-            transition: height 0.5s ease, background-color 0.5s ease;
+            height: 100%; /* Controlado pelo JS */
+            border-radius: 22px; /* Acompanha o arredondamento do corpo */
+            transition: height 0.6s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.6s ease;
+            background-color: var(--md-green);
         }
 
+        /* Texto de porcentagem centralizado dentro da bateria */
         .percentage-text {
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            font-weight: bold;
-            font-size: 1.5rem;
-            text-shadow: 1px 1px 5px rgba(0,0,0,0.8);
+            font-weight: 700;
+            font-size: 2rem;
+            color: #ffffff;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+            letter-spacing: -1px;
         }
 
-        .info { margin-top: 1.5rem; }
-        .value { font-size: 1.8rem; font-weight: bold; color: var(--battery-green); }
-        .label { color: #888; font-size: 0.9rem; }
+        /* --- Informações de Valor --- */
+        .info { margin-bottom: 1.5rem; }
+        .value { font-size: 2.2rem; font-weight: 700; color: var(--md-green); transition: color 0.5s ease; letter-spacing: -1px;}
+        .sub-label { color: var(--text-secondary); font-size: 0.85rem; margin-top: 4px;}
 
-        input {
-            width: 80%;
-            padding: 10px;
-            margin-top: 1rem;
-            border-radius: 8px;
-            border: none;
+        /* --- Inputs e Botões Material Design --- */
+        .action-area {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            width: 100%;
+        }
+
+        input[type="number"] {
+            width: 100%;
+            padding: 16px;
+            border-radius: var(--border-radius-md);
+            border: 2px solid #444746;
+            background-color: var(--input-bg);
+            color: var(--text-primary);
+            font-size: 1rem;
             outline: none;
+            transition: border-color 0.3s ease;
+            -moz-appearance: textfield; /* Remove setas no Firefox */
+        }
+        
+        input[type="number"]::-webkit-outer-spin-button,
+        input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none; margin: 0; /* Remove setas no Chrome */
+        }
+
+        input[type="number"]:focus {
+            border-color: var(--btn-primary);
         }
 
         button {
-            background-color: #3f51b5;
-            color: white;
+            width: 100%;
             border: none;
-            padding: 10px 20px;
-            margin-top: 10px;
-            border-radius: 8px;
+            padding: 16px;
+            border-radius: var(--border-radius-md);
+            font-weight: 500;
+            font-size: 1rem;
             cursor: pointer;
-            font-weight: bold;
+            transition: background-color 0.2s ease, transform 0.1s ease;
+            font-family: 'Roboto', sans-serif;
         }
 
-        button:active { transform: scale(0.95); }
-        .reset-btn { background-color: transparent; color: #555; font-size: 0.7rem; margin-top: 20px; }
+        .add-btn {
+            background-color: var(--btn-primary);
+            color: var(--btn-text);
+        }
+
+        .add-btn:hover { background-color: #d3e3fd; }
+        .add-btn:active { transform: scale(0.97); }
+
+        .reset-btn {
+            background-color: transparent;
+            color: #8e918f;
+            font-size: 0.8rem;
+            margin-top: 1rem;
+            padding: 8px;
+        }
+        .reset-btn:hover { color: var(--md-red); background-color: rgba(244, 67, 54, 0.1); }
+
     </style>
 </head>
 <body>
 
     <div class="container">
         <h2>Pilha Financeira</h2>
-        <p class="label">Até 14/03 (Fechamento)</p>
+        <span class="label">Até 14/03 (Fechamento)</span>
         
-        <div class="battery-head"></div>
-        <div class="battery-body">
-            <div id="batteryLevel" class="battery-level"></div>
-            <div id="percentageText" class="percentage-text">100%</div>
+        <div class="battery-container">
+            <div class="battery-head"></div>
+            <div class="battery-body">
+                <div id="batteryLevel" class="battery-level"></div>
+                <div id="percentageText" class="percentage-text">--%</div>
+            </div>
         </div>
 
         <div class="info">
             <div id="remainingValue" class="value">R$ 0,00</div>
-            <div class="label">restantes de R$ 1.066,00</div>
+            <div class="sub-label">restantes do teto de R$ 1.066,00</div>
         </div>
 
-        <input type="number" id="expenseInput" placeholder="Valor do gasto (ex: 23.89)">
-        <br>
-        <button onclick="addExpense()">Abater da Pilha</button>
-        <br>
+        <div class="action-area">
+            <input type="number" id="expenseInput" placeholder="Valor do gasto (ex: 15.50)" inputmode="decimal">
+            <button class="add-btn" onclick="addExpense()">Abater da Pilha</button>
+        </div>
+
         <button class="reset-btn" onclick="resetApp()">Resetar Meta</button>
     </div>
 
     <script>
-        // O teto que discutimos: Espaço entre R$ 1.256 e R$ 2.322
+        // --- Lógica Mantida (Apenas referências de cores atualizadas) ---
         const TETO_MAXIMO = 1066.00; 
         
-        // Iniciamos com o gasto do almoço de hoje (R$ 23,89) 
-        // ou recuperamos o que você já salvou no teste
-        let gastosAcumulados = parseFloat(localStorage.getItem('gastos'));
+        let gastosAcumulados = parseFloat(localStorage.getItem('gastos_elder'));
         
-        // Se for a primeira vez abrindo, define o almoço como gasto inicial
         if (isNaN(gastosAcumulados)) {
-            gastosAcumulados = 23.89; 
+            gastosAcumulados = 23.89; // Começa com o almoço de ontem (05/03)
         }
 
         function updateUI() {
@@ -152,20 +232,22 @@
             const level = document.getElementById('batteryLevel');
             level.style.height = `${porcentagem}%`;
 
-            // Lógica de cores da bateria
+            // Lógica de cores baseada nas variáveis CSS suaves
+            const rootStyle = getComputedStyle(document.documentElement);
+
             if (porcentagem > 50) {
-                level.style.backgroundColor = 'var(--battery-green)';
-                displayValue.style.color = 'var(--battery-green)';
+                level.style.backgroundColor = rootStyle.getPropertyValue('--md-green').trim();
+                displayValue.style.color = rootStyle.getPropertyValue('--md-green').trim();
             } else if (porcentagem > 20) {
-                level.style.backgroundColor = 'var(--battery-yellow)';
-                displayValue.style.color = 'var(--battery-yellow)';
+                level.style.backgroundColor = rootStyle.getPropertyValue('--md-yellow').trim();
+                displayValue.style.color = rootStyle.getPropertyValue('--md-yellow').trim();
             } else {
-                level.style.backgroundColor = 'var(--battery-red)';
-                displayValue.style.color = 'var(--battery-red)';
+                level.style.backgroundColor = rootStyle.getPropertyValue('--md-red').trim();
+                displayValue.style.color = rootStyle.getPropertyValue('--md-red').trim();
             }
 
-            // Salva o estado atual
-            localStorage.setItem('gastos', gastosAcumulados);
+            // Salva o estado atual (mudei o nome da chave pra não conflitar com o teste anterior)
+            localStorage.setItem('gastos_elder', gastosAcumulados);
         }
 
         function addExpense() {
@@ -175,17 +257,21 @@
             if (!isNaN(valor) && valor > 0) {
                 gastosAcumulados += valor;
                 input.value = '';
+                // Esconde o teclado no mobile
+                document.activeElement.blur();
                 updateUI();
             }
         }
 
         function resetApp() {
-            if(confirm("Deseja resetar para o início do plano (R$ 1.066,00)?")) {
-                gastosAcumulados = 23.89; // Mantém o almoço de hoje
+            // Mudei o confirm para algo mais amigável
+            if(confirm("Deseja resetar a pilha para o início (R$ 1.066,00)?")) {
+                gastosAcumulados = 23.89; // Mantém o almoço inicial
                 updateUI();
             }
         }
 
+        // Inicializa
         updateUI();
     </script>
 </body>
