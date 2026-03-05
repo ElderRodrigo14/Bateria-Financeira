@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Money Battery - Elder Edition</title>
+    <style>
+        :root {
+            --bg-color: #121212;
+            --card-color: #1e1e1e;
+            --text-color: #ffffff;
+            --battery-green: #4caf50;
+            --battery-yellow: #ffeb3b;
+            --battery-red: #f44336;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            background-color: var(--card-color);
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            text-align: center;
+            width: 320px;
+        }
+
+        /* Desenho da Bateria */
+        .battery-head {
+            width: 30px;
+            height: 12px;
+            background: #444;
+            margin: 0 auto;
+            border-radius: 4px 4px 0 0;
+        }
+
+        .battery-body {
+            width: 120px;
+            height: 200px;
+            border: 4px solid #444;
+            margin: 0 auto;
+            border-radius: 12px;
+            padding: 4px;
+            display: flex;
+            align-items: flex-end;
+            position: relative;
+        }
+
+        .battery-level {
+            width: 100%;
+            height: 100%; /* Vai ser controlado pelo JS */
+            border-radius: 6px;
+            transition: height 0.5s ease, background-color 0.5s ease;
+        }
+
+        .percentage-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-weight: bold;
+            font-size: 1.5rem;
+            text-shadow: 1px 1px 5px rgba(0,0,0,0.8);
+        }
+
+        .info { margin-top: 1.5rem; }
+        .value { font-size: 1.8rem; font-weight: bold; color: var(--battery-green); }
+        .label { color: #888; font-size: 0.9rem; }
+
+        input {
+            width: 80%;
+            padding: 10px;
+            margin-top: 1rem;
+            border-radius: 8px;
+            border: none;
+            outline: none;
+        }
+
+        button {
+            background-color: #3f51b5;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin-top: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        button:active { transform: scale(0.95); }
+        .reset-btn { background-color: transparent; color: #555; font-size: 0.7rem; margin-top: 20px; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>Pilha Financeira</h2>
+        <p class="label">Até 14/03 (Fechamento)</p>
+        
+        <div class="battery-head"></div>
+        <div class="battery-body">
+            <div id="batteryLevel" class="battery-level"></div>
+            <div id="percentageText" class="percentage-text">100%</div>
+        </div>
+
+        <div class="info">
+            <div id="remainingValue" class="value">R$ 0,00</div>
+            <div class="label">restantes de R$ 1.066,00</div>
+        </div>
+
+        <input type="number" id="expenseInput" placeholder="Valor do gasto (ex: 23.89)">
+        <br>
+        <button onclick="addExpense()">Abater da Pilha</button>
+        <br>
+        <button class="reset-btn" onclick="resetApp()">Resetar Meta</button>
+    </div>
+
+    <script>
+        // O teto que discutimos: Espaço entre R$ 1.256 e R$ 2.322
+        const TETO_MAXIMO = 1066.00; 
+        
+        // Iniciamos com o gasto do almoço de hoje (R$ 23,89) 
+        // ou recuperamos o que você já salvou no teste
+        let gastosAcumulados = parseFloat(localStorage.getItem('gastos'));
+        
+        // Se for a primeira vez abrindo, define o almoço como gasto inicial
+        if (isNaN(gastosAcumulados)) {
+            gastosAcumulados = 23.89; 
+        }
+
+        function updateUI() {
+            const restante = TETO_MAXIMO - gastosAcumulados;
+            const porcentagem = Math.max(0, (restante / TETO_MAXIMO) * 100);
+            
+            // Atualiza Texto e Cor do Valor
+            const displayValue = document.getElementById('remainingValue');
+            displayValue.innerText = `R$ ${restante.toFixed(2)}`;
+            
+            document.getElementById('percentageText').innerText = `${Math.round(porcentagem)}%`;
+            
+            // Atualiza Barra
+            const level = document.getElementById('batteryLevel');
+            level.style.height = `${porcentagem}%`;
+
+            // Lógica de cores da bateria
+            if (porcentagem > 50) {
+                level.style.backgroundColor = 'var(--battery-green)';
+                displayValue.style.color = 'var(--battery-green)';
+            } else if (porcentagem > 20) {
+                level.style.backgroundColor = 'var(--battery-yellow)';
+                displayValue.style.color = 'var(--battery-yellow)';
+            } else {
+                level.style.backgroundColor = 'var(--battery-red)';
+                displayValue.style.color = 'var(--battery-red)';
+            }
+
+            // Salva o estado atual
+            localStorage.setItem('gastos', gastosAcumulados);
+        }
+
+        function addExpense() {
+            const input = document.getElementById('expenseInput');
+            const valor = parseFloat(input.value);
+            
+            if (!isNaN(valor) && valor > 0) {
+                gastosAcumulados += valor;
+                input.value = '';
+                updateUI();
+            }
+        }
+
+        function resetApp() {
+            if(confirm("Deseja resetar para o início do plano (R$ 1.066,00)?")) {
+                gastosAcumulados = 23.89; // Mantém o almoço de hoje
+                updateUI();
+            }
+        }
+
+        updateUI();
+    </script>
+</body>
+</html>
