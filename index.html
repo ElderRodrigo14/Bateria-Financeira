@@ -24,33 +24,26 @@
             font-family: 'Roboto', sans-serif;
             background-color: var(--bg-color);
             color: var(--text-primary);
+            min-height: 100vh;
             overflow-x: hidden;
         }
 
+        /* Esconde setinhas de input numérico */
+        input[type="number"]::-webkit-outer-spin-button,
+        input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        input[type="number"] { -moz-appearance: textfield; }
+
         /* --- TOP BAR --- */
         .topbar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 20px 24px;
-            background: rgba(19, 19, 20, 0.8);
-            backdrop-filter: blur(10px);
-            position: sticky;
-            top: 0;
-            z-index: 10;
-            border-bottom: 1px solid #333;
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 20px 24px; background: rgba(19, 19, 20, 0.85); backdrop-filter: blur(10px);
+            position: sticky; top: 0; z-index: 10; border-bottom: 1px solid #333;
         }
-
         .topbar h1 { font-size: 1.3rem; font-weight: 500; }
         
         .icon-btn {
-            background: transparent;
-            border: none;
-            color: var(--text-primary);
-            font-size: 1.5rem;
-            cursor: pointer;
-            padding: 8px;
-            border-radius: 50%;
+            background: transparent; border: none; color: var(--text-primary);
+            font-size: 1.5rem; cursor: pointer; padding: 8px; border-radius: 50%;
             transition: background 0.2s;
         }
         .icon-btn:active { background: #333; }
@@ -60,26 +53,15 @@
 
         /* --- CARDS --- */
         .card {
-            background-color: var(--card-color);
-            border-radius: var(--border-radius);
-            padding: 24px;
-            border: 1px solid #3c4043;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            position: relative;
+            background-color: var(--card-color); border-radius: var(--border-radius);
+            padding: 24px; border: 1px solid #3c4043; display: flex;
+            flex-direction: column; align-items: center; position: relative;
         }
 
-        /* Campos Editáveis Seamless (Invisíveis até focar) */
+        /* Campos Editáveis Seamless */
         .seamless-input {
-            background: transparent;
-            border: none;
-            color: inherit;
-            font-family: inherit;
-            text-align: center;
-            outline: none;
-            width: 100%;
-            border-bottom: 1px dashed transparent;
+            background: transparent; border: none; color: inherit; font-family: inherit;
+            text-align: center; outline: none; width: 100%; border-bottom: 1px dashed transparent;
             transition: border-color 0.2s;
         }
         .seamless-input:focus { border-bottom: 1px dashed var(--btn-primary); }
@@ -87,7 +69,7 @@
         .card-title { font-size: 1.3rem; font-weight: 700; margin-bottom: 4px; color: var(--text-primary); }
         .card-date { font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 24px; }
 
-        /* --- BATERIA VISUAL (Padrão Arredondado) --- */
+        /* --- BATERIA VISUAL --- */
         .battery-container { position: relative; width: 90px; height: 180px; margin-bottom: 20px; }
         .battery-head {
             position: absolute; top: -8px; left: 50%; transform: translateX(-50%);
@@ -97,13 +79,248 @@
             width: 100%; height: 100%; border: 3px solid #444746; border-radius: 25px;
             padding: 5px; display: flex; align-items: flex-end; background-color: #131314;
         }
-        .battery-level {
-            width: 100%; border-radius: 18px; transition: height 0.5s ease, background-color 0.5s ease;
-        }
+        .battery-level { width: 100%; border-radius: 18px; transition: height 0.5s ease, background-color 0.5s ease; }
         .percentage-text {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
             font-weight: 700; font-size: 1.5rem; color: #fff; text-shadow: 0 2px 4px rgba(0,0,0,0.6);
         }
 
         /* --- VALORES --- */
-        .value-area { text-align: center; width: 100%; margin-bottom: 2
+        .value-area { text-align: center; width: 100%; margin-bottom: 20px; }
+        .remaining-val { font-size: 2rem; font-weight: 700; letter-spacing: -1px; }
+        .teto-area { font-size: 0.9rem; color: var(--text-secondary); display: flex; justify-content: center; align-items: center; gap: 4px; margin-top: 4px;}
+        .teto-input { width: 80px; font-weight: 500; color: var(--text-secondary); }
+
+        /* --- AÇÕES --- */
+        .action-row { display: flex; gap: 12px; width: 100%; margin-bottom: 16px; }
+        .expense-input {
+            flex: 1; padding: 14px; border-radius: 14px; border: 1px solid #444; background: #2a2b2e;
+            color: white; font-size: 1rem; outline: none;
+        }
+        .expense-input:focus { border-color: var(--btn-primary); }
+        
+        .btn-add {
+            background: var(--btn-primary); color: #062e6f; border: none; border-radius: 14px;
+            padding: 0 20px; font-weight: 600; font-size: 1.2rem; cursor: pointer;
+        }
+
+        .card-footer { display: flex; justify-content: space-between; width: 100%; border-top: 1px solid #333; padding-top: 16px; }
+        .btn-text { background: transparent; border: none; color: var(--text-secondary); font-size: 0.9rem; padding: 8px; cursor: pointer; font-weight: 500; }
+        .btn-text.danger { color: #f28b82; }
+
+        /* --- SIDEBAR --- */
+        .sidebar-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6); z-index: 99; opacity: 0; visibility: hidden; transition: 0.3s;
+        }
+        .sidebar-overlay.active { opacity: 1; visibility: visible; }
+
+        .sidebar {
+            position: fixed; top: 0; right: -320px; width: 300px; height: 100%;
+            background: var(--card-color); z-index: 100; transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border-left: 1px solid #333; display: flex; flex-direction: column;
+        }
+        .sidebar.open { right: 0; }
+        
+        .sidebar-header { padding: 24px; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center; }
+        .sidebar-header h2 { font-size: 1.2rem; font-weight: 500; }
+        .sidebar-content { padding: 20px; overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 16px; }
+
+        /* Card Arquivado */
+        .archived-card { background: #2a2b2e; padding: 16px; border-radius: 16px; border: 1px solid #444; }
+        .archived-card h3 { font-size: 1rem; margin-bottom: 8px; }
+        .archived-actions { display: flex; justify-content: space-between; margin-top: 12px; }
+    </style>
+</head>
+<body>
+
+    <nav class="topbar">
+        <h1>⚡ MoneyBattery</h1>
+        <div>
+            <button class="icon-btn" onclick="createNewBattery()">➕</button>
+            <button class="icon-btn" onclick="toggleSidebar()">📂</button>
+        </div>
+    </nav>
+
+    <main class="main-content" id="active-container">
+        </main>
+
+    <div class="sidebar-overlay" id="overlay" onclick="toggleSidebar()"></div>
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h2>📦 Arquivadas</h2>
+            <button class="icon-btn" onclick="toggleSidebar()">✕</button>
+        </div>
+        <div class="sidebar-content" id="archived-container">
+            </div>
+    </div>
+
+    <script>
+        // --- BLINDAGEM DE DADOS (Impede a tela preta) ---
+        let batteries = [];
+        const STORAGE_KEY = 'moneyBatteryApp_v3'; // Chave nova para ignorar erros antigos
+
+        try {
+            const localData = localStorage.getItem(STORAGE_KEY);
+            if (localData) {
+                batteries = JSON.parse(localData);
+                if (!Array.isArray(batteries)) batteries = [];
+            }
+        } catch (error) {
+            console.error("Erro ao ler dados antigos", error);
+            batteries = [];
+        }
+
+        // --- FUNÇÕES ---
+        function saveData() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(batteries));
+            render();
+        }
+
+        if (batteries.length === 0) {
+            batteries.push({
+                id: Date.now(),
+                name: 'Sobrevivência Março',
+                teto: 1066.00,
+                gastos: 122.72, // Já coloquei o valor ajustado de hoje (06/03)
+                date: '2026-03-14',
+                status: 'active'
+            });
+            saveData();
+        }
+
+        function createNewBattery() {
+            batteries.unshift({
+                id: Date.now(),
+                name: 'Nova Pilha',
+                teto: 1000.00,
+                gastos: 0,
+                date: '2026-04-01',
+                status: 'active'
+            });
+            saveData();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function updateField(id, field, element) {
+            const battery = batteries.find(b => b.id === id);
+            if (!battery) return;
+
+            if (field === 'name' || field === 'date') {
+                battery[field] = element.value;
+            } else if (field === 'teto') {
+                const val = parseFloat(element.value.replace(',', '.'));
+                if (!isNaN(val) && val > 0) battery.teto = val;
+            }
+            saveData();
+        }
+
+        function addExpense(id) {
+            const input = document.getElementById(`expense-${id}`);
+            const val = parseFloat(input.value.replace(',', '.'));
+            
+            if (!isNaN(val) && val > 0) {
+                const battery = batteries.find(b => b.id === id);
+                battery.gastos += val;
+                input.value = '';
+                document.activeElement.blur(); 
+                saveData();
+            }
+        }
+
+        function changeStatus(id, newStatus) {
+            const battery = batteries.find(b => b.id === id);
+            if(battery) {
+                battery.status = newStatus;
+                saveData();
+            }
+        }
+
+        function deleteBattery(id) {
+            if(confirm("Excluir esta pilha permanentemente?")) {
+                batteries = batteries.filter(b => b.id !== id);
+                saveData();
+            }
+        }
+
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('open');
+            document.getElementById('overlay').classList.toggle('active');
+        }
+
+        // --- RENDERIZAÇÃO ---
+        function render() {
+            const activeContainer = document.getElementById('active-container');
+            const archivedContainer = document.getElementById('archived-container');
+            
+            activeContainer.innerHTML = '';
+            archivedContainer.innerHTML = '';
+
+            let hasArchived = false;
+
+            batteries.forEach(b => {
+                const restante = b.teto - b.gastos;
+                const perc = Math.max(0, Math.min(100, (restante / b.teto) * 100));
+                
+                let colorClass = 'var(--md-red)';
+                if (perc > 50) colorClass = 'var(--md-green)';
+                else if (perc > 20) colorClass = 'var(--md-yellow)';
+
+                if (b.status === 'active') {
+                    activeContainer.innerHTML += `
+                        <div class="card">
+                            <input type="text" class="seamless-input card-title" value="${b.name}" onchange="updateField(${b.id}, 'name', this)" placeholder="Nome da Pilha">
+                            <input type="date" class="seamless-input card-date" value="${b.date}" onchange="updateField(${b.id}, 'date', this)">
+
+                            <div class="battery-container">
+                                <div class="battery-head"></div>
+                                <div class="battery-body">
+                                    <div class="battery-level" style="height: ${perc}%; background-color: ${colorClass};"></div>
+                                    <div class="percentage-text">${Math.round(perc)}%</div>
+                                </div>
+                            </div>
+
+                            <div class="value-area">
+                                <div class="remaining-val" style="color: ${colorClass};">R$ ${restante.toFixed(2)}</div>
+                                <div class="teto-area">
+                                    Meta Total: R$ <input type="number" class="seamless-input teto-input" value="${b.teto}" onchange="updateField(${b.id}, 'teto', this)" inputmode="decimal">
+                                </div>
+                            </div>
+
+                            <div class="action-row">
+                                <input type="number" id="expense-${b.id}" class="expense-input" placeholder="Gastei R$..." inputmode="decimal" onkeydown="if(event.key==='Enter') addExpense(${b.id})">
+                                <button class="btn-add" onclick="addExpense(${b.id})">+</button>
+                            </div>
+
+                            <div class="card-footer">
+                                <button class="btn-text danger" onclick="deleteBattery(${b.id})">Excluir</button>
+                                <button class="btn-text" onclick="changeStatus(${b.id}, 'archived')">📦 Arquivar</button>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    hasArchived = true;
+                    archivedContainer.innerHTML += `
+                        <div class="archived-card">
+                            <h3>${b.name}</h3>
+                            <div style="color: var(--text-secondary); font-size: 0.9rem;">
+                                Final: R$ ${restante.toFixed(2)} de R$ ${b.teto}
+                            </div>
+                            <div class="archived-actions">
+                                <button class="btn-text danger" style="padding:0;" onclick="deleteBattery(${b.id})">Excluir</button>
+                                <button class="btn-text" style="padding:0; color: var(--btn-primary);" onclick="changeStatus(${b.id}, 'active')">⚡ Restaurar</button>
+                            </div>
+                        </div>
+                    `;
+                }
+            });
+
+            if (!hasArchived) {
+                archivedContainer.innerHTML = '<p style="color:var(--text-secondary); text-align:center; margin-top:20px;">Nenhuma pilha arquivada.</p>';
+            }
+        }
+
+        render();
+    </script>
+</body>
+</html>
