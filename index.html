@@ -41,4 +41,285 @@
             box-shadow: 0 0 20px rgba(242, 139, 130, 0.3);
             animation: shake 0.4s ease-in-out infinite alternate;
         }
-        @keyframes shake { from { transform: translateX(-1px); } to { transform:
+        @keyframes shake { from { transform: translateX(-1px); } to { transform: translateX(1px); } }
+
+        .seamless-input {
+            background: transparent; border: none; color: inherit; font-family: inherit;
+            text-align: center; outline: none; width: 100%; border-bottom: 1px dashed transparent;
+        }
+        .seamless-input:focus { border-bottom: 1px dashed var(--btn-primary); }
+        
+        .battery-container { position: relative; width: 80px; height: 160px; margin-bottom: 15px; }
+        .battery-head { width: 24px; height: 8px; background: #444746; margin: 0 auto; border-radius: 4px 4px 0 0; }
+        .battery-body {
+            width: 100%; height: 100%; border: 3px solid #444746; border-radius: 20px;
+            padding: 4px; display: flex; align-items: flex-end; background: #131314; position: relative;
+        }
+        .battery-level { width: 100%; border-radius: 14px; transition: height 0.6s cubic-bezier(0.4, 0, 0.2, 1); }
+        .percentage-text {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            font-weight: 700; font-size: 1.3rem; text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+        }
+
+        .category-selector { display: flex; gap: 8px; margin-bottom: 15px; width: 100%; overflow-x: auto; padding: 5px 0; scrollbar-width: none; }
+        .cat-btn { 
+            background: #2a2b2e; border: 1px solid #444; border-radius: 12px; padding: 10px; 
+            cursor: pointer; font-size: 1.2rem; min-width: 45px; transition: 0.2s;
+        }
+        .cat-btn.active { background: var(--btn-primary); border-color: var(--btn-primary); transform: translateY(-3px); }
+
+        .action-row { display: flex; gap: 10px; width: 100%; margin-bottom: 20px; }
+        .expense-input {
+            flex: 1; padding: 14px; border-radius: 16px; border: 1px solid #444; background: #2a2b2e;
+            color: white; font-size: 1.1rem; outline: none;
+        }
+        .btn-add {
+            background: var(--btn-primary); color: #062e6f; border: none; border-radius: 16px;
+            padding: 0 22px; font-weight: 700; font-size: 1.5rem; cursor: pointer;
+        }
+
+        .history-section { width: 100%; border-top: 1px solid #333; padding-top: 15px; }
+        .history-header { display: flex; justify-content: space-between; color: var(--text-secondary); font-size: 0.9rem; cursor: pointer; }
+        .history-list { max-height: 0; overflow: hidden; transition: 0.4s; display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
+        .history-list.open { max-height: 400px; overflow-y: auto; }
+        .history-item {
+            background: rgba(255,255,255,0.04); padding: 12px; border-radius: 14px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+
+        .sidebar {
+            position: fixed; top: 0; right: -320px; width: 300px; height: 100%;
+            background: var(--card-color); z-index: 100; transition: 0.3s; padding: 25px;
+            border-left: 1px solid #333; display: flex; flex-direction: column; gap: 15px;
+        }
+        .sidebar.open { right: 0; }
+        .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); visibility: hidden; opacity: 0; z-index: 99; transition: 0.3s; }
+        .overlay.active { visibility: visible; opacity: 1; }
+        
+        .backup-btn { width: 100%; padding: 14px; border-radius: 12px; border: 1px solid #444; background: #2a2b2e; color: white; cursor: pointer; margin-bottom: 5px; }
+        .btn-restore { background: #3c4043; color: var(--btn-primary); border: 1px solid var(--btn-primary); }
+    </style>
+</head>
+<body>
+
+    <nav class="topbar">
+        <h1 onclick="location.reload()" style="cursor:pointer">⚡ MoneyBattery</h1>
+        <div>
+            <button onclick="createNewBattery()" style="background:none; border:none; font-size:1.6rem; color:white; margin-right:15px; cursor:pointer">➕</button>
+            <button onclick="toggleSidebar()" style="background:none; border:none; font-size:1.6rem; color:white; cursor:pointer">📂</button>
+        </div>
+    </nav>
+
+    <main class="main-content" id="active-container">
+        </main>
+
+    <div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
+    <div class="sidebar" id="sidebar">
+        <h2 style="margin-bottom:10px">Configurações</h2>
+        <button class="backup-btn" onclick="exportData()">📤 Copiar Código de Backup</button>
+        <button class="backup-btn btn-restore" onclick="importData()">📥 Restaurar Dados</button>
+        <hr style="border:0; border-top:1px solid #333; margin: 15px 0">
+        <h3>📦 Arquivadas</h3>
+        <div id="archived-container" style="flex:1; overflow-y:auto"></div>
+    </div>
+
+    <script>
+        const STORAGE_KEY = 'moneyBattery_v6';
+        let batteries = [];
+        let selectedIcon = '💰';
+
+        // Carregamento Seguro
+        try {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            batteries = saved ? JSON.parse(saved) : [];
+        } catch (e) { batteries = []; }
+
+        if (batteries.length === 0) {
+            batteries.push({
+                id: Date.now(),
+                name: 'Sobrevivência Março',
+                teto: 1066.00,
+                gastos: 441.40,
+                date: '2026-03-14',
+                status: 'active',
+                history: [{ id: 1, val: 441.40, time: 'Saldo Inicial', icon: '🏁' }],
+                isHistoryOpen: false
+            });
+            save();
+        }
+
+        function save() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(batteries));
+            render();
+        }
+
+        function selectIcon(icon, btn) {
+            selectedIcon = icon;
+            document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        }
+
+        function addExpense(id) {
+            const input = document.getElementById(`input-${id}`);
+            const val = parseFloat(input.value.replace(',', '.'));
+            if (!isNaN(val) && val > 0) {
+                const b = batteries.find(x => x.id === id);
+                const now = new Date();
+                const timeStr = `${now.getHours()}:${now.getMinutes().toString().padStart(2, '0')}`;
+                
+                b.history = b.history || [];
+                b.history.unshift({ id: Date.now(), val: val, time: timeStr, icon: selectedIcon });
+                b.gastos += val;
+                input.value = '';
+                save();
+            }
+        }
+
+        function removeHistoryItem(batteryId, itemId) {
+            if (confirm("Remover este gasto?")) {
+                const b = batteries.find(x => x.id === batteryId);
+                const item = b.history.find(i => i.id === itemId);
+                b.gastos -= item.val;
+                b.history = b.history.filter(i => i.id !== itemId);
+                save();
+            }
+        }
+
+        function exportData() {
+            const data = btoa(JSON.stringify(batteries));
+            navigator.clipboard.writeText(data).then(() => alert("Backup copiado!"));
+        }
+
+        function importData() {
+            const code = prompt("Cole o código de backup:");
+            if (code) {
+                try {
+                    const decoded = JSON.parse(atob(code));
+                    if (Array.isArray(decoded)) { batteries = decoded; save(); }
+                } catch(e) { alert("Erro ao importar!"); }
+            }
+        }
+
+        function updateB(id, f, v) { 
+            const b = batteries.find(x => x.id === id); 
+            b[f] = f === 'teto' ? parseFloat(v) : v; 
+            save(); 
+        }
+
+        function toggleH(id) { 
+            const b = batteries.find(x => x.id === id); 
+            b.isHistoryOpen = !b.isHistoryOpen; 
+            save(); 
+        }
+
+        function createNewBattery() {
+            batteries.unshift({ 
+                id: Date.now(), name: 'Nova Pilha', teto: 1000, gastos: 0, 
+                date: '2026-04-01', status: 'active', history: [], isHistoryOpen: false 
+            });
+            save();
+        }
+
+        function toggleSidebar() { 
+            document.getElementById('sidebar').classList.toggle('open'); 
+            document.getElementById('overlay').classList.toggle('active'); 
+        }
+
+        function setStatus(id, s) { 
+            batteries.find(x => x.id === id).status = s; 
+            save(); 
+        }
+
+        function deleteB(id) {
+            if(confirm("Excluir permanentemente?")) {
+                batteries = batteries.filter(x => x.id !== id);
+                save();
+            }
+        }
+
+        function render() {
+            const activeCont = document.getElementById('active-container');
+            const archCont = document.getElementById('archived-container');
+            activeCont.innerHTML = '';
+            archCont.innerHTML = '';
+
+            batteries.forEach(b => {
+                const restante = b.teto - b.gastos;
+                const perc = Math.max(0, Math.min(100, (restante / b.teto) * 100));
+                let color = perc > 50 ? 'var(--md-green)' : perc > 20 ? 'var(--md-yellow)' : 'var(--md-red)';
+                const criticalClass = perc < 15 ? 'critical' : '';
+
+                if (b.status === 'active') {
+                    activeCont.innerHTML += `
+                        <div class="card ${criticalClass}">
+                            <input class="seamless-input" style="font-weight:700; font-size:1.4rem" value="${b.name}" onchange="updateB(${b.id}, 'name', this.value)">
+                            <input type="date" class="seamless-input" style="font-size:0.9rem; color:var(--text-secondary); margin-bottom:20px" value="${b.date}" onchange="updateB(${b.id}, 'date', this.value)">
+
+                            <div class="battery-container">
+                                <div class="battery-head"></div>
+                                <div class="battery-body">
+                                    <div class="battery-level" style="height:${perc}%; background:${color}"></div>
+                                    <div class="percentage-text">${Math.round(perc)}%</div>
+                                </div>
+                            </div>
+
+                            <div style="font-size:2.4rem; font-weight:700; color:${color}">R$ ${restante.toFixed(2)}</div>
+                            <div style="font-size:0.9rem; color:var(--text-secondary); margin-bottom:20px">
+                                Meta: R$ <input class="seamless-input" style="width:70px; text-align:left" value="${b.teto}" onchange="updateB(${b.id}, 'teto', this.value)">
+                            </div>
+
+                            <div class="category-selector">
+                                <button class="cat-btn ${selectedIcon==='💰'?'active':''}" onclick="selectIcon('💰', this)">💰</button>
+                                <button class="cat-btn ${selectedIcon==='🍔'?'active':''}" onclick="selectIcon('🍔', this)">🍔</button>
+                                <button class="cat-btn ${selectedIcon==='🚗'?'active':''}" onclick="selectIcon('🚗', this)">🚗</button>
+                                <button class="cat-btn ${selectedIcon==='🛒'?'active':''}" onclick="selectIcon('🛒', this)">🛒</button>
+                                <button class="cat-btn ${selectedIcon==='🎁'?'active':''}" onclick="selectIcon('🎁', this)">🎁</button>
+                            </div>
+
+                            <div class="action-row">
+                                <input type="number" id="input-${b.id}" class="expense-input" placeholder="R$..." inputmode="decimal" onkeydown="if(event.key==='Enter') addExpense(${b.id})">
+                                <button class="btn-add" onclick="addExpense(${b.id})">+</button>
+                            </div>
+
+                            <div class="history-section">
+                                <div class="history-header" onclick="toggleH(${b.id})">
+                                    <span>📜 Histórico (${(b.history||[]).length})</span>
+                                    <span>${b.isHistoryOpen ? '🔼' : '🔽'}</span>
+                                </div>
+                                <div class="history-list ${b.isHistoryOpen ? 'open' : ''}">
+                                    ${(b.history || []).map(i => `
+                                        <div class="history-item">
+                                            <div style="display:flex; align-items:center; gap:12px">
+                                                <span style="font-size:1.3rem">${i.icon || '💰'}</span>
+                                                <div>
+                                                    <div style="font-weight:600">- R$ ${i.val.toFixed(2)}</div>
+                                                    <div style="font-size:0.75rem; color:var(--text-secondary)">${i.time}</div>
+                                                </div>
+                                            </div>
+                                            <button style="background:none; border:none; color:var(--md-red); font-size:1.3rem; cursor:pointer" onclick="removeHistoryItem(${b.id}, ${i.id})">✕</button>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+
+                            <div style="display:flex; justify-content:space-between; width:100%; margin-top:25px">
+                                <button style="background:none; border:none; color:var(--md-red); cursor:pointer; font-weight:500" onclick="deleteB(${b.id})">Excluir</button>
+                                <button style="background:none; border:none; color:var(--text-secondary); cursor:pointer; font-weight:500" onclick="setStatus(${b.id}, 'archived')">📦 Arquivar</button>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    archCont.innerHTML += `
+                        <div class="history-item" style="margin-bottom:10px">
+                            <span>${b.name}</span>
+                            <button onclick="setStatus(${b.id}, 'active')" style="background:none; border:none; color:var(--btn-primary); cursor:pointer">Restaurar</button>
+                        </div>
+                    `;
+                }
+            });
+        }
+
+        render();
+    </script>
+</body>
+</html>
